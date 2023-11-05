@@ -1,17 +1,14 @@
-import WhatsappCommands from 'src/channels/whatsapp/whatsapp.commands'
 import WhatsappDispatcher from 'src/channels/whatsapp/whatsapp.dispatcher'
 import Hierarchy from 'src/channels/whatsapp/whatsapp.hierarchy'
 import WhatsAppTemplate from 'src/channels/whatsapp/whatsapp.template'
 import api from 'src/config/api'
 import http from 'src/config/http'
-import { ICategory, IHttpGetResponse } from 'src/interfaces'
+import { IHttpGetResponse } from 'src/interfaces'
 import { IProduct } from 'src/interfaces/product.interface'
-import BrowseCategoryModel from 'src/models/browse-category.model'
 import HierarchyModel from 'src/models/hierarchy.model'
-import MessageContextModel from 'src/models/message-context.model'
 import ProductModel from 'src/models/product.model'
 import SessionModel from 'src/models/session.model'
-import { categoryMenu, createWhatsappTextTemplate, isDigit } from 'src/utils/util'
+import { createWhatsappTextTemplate, isDigit } from 'src/utils/util'
 import HierarchyService from './hierarchy.service'
 import PaginationService from './pagination.service'
 
@@ -55,18 +52,6 @@ async function viewProduct(account: string, product: IProduct) {
       account,
       WhatsAppTemplate.productCardTemplate(product)
     )
-
-    await MessageContextModel.deleteOne({
-      account,
-      command: WhatsappCommands.ADD_TO_CART,
-      'product.product_id': product.product_id,
-    })
-    await MessageContextModel.create({
-      account,
-      waId: response?.messages.first?.id,
-      command: WhatsappCommands.ADD_TO_CART,
-      product,
-    })
   } catch (e) {
     console.log(e)
   }
@@ -125,40 +110,6 @@ async function search(account: string, value: string): Promise<void> {
   }
 }
 
-async function browseCategories(account: string, value: string) {
-  try {
-    if (!search) {
-      return
-    }
-
-    const hierarchy = await HierarchyModel.findOne({ account })
-
-    if (hierarchy?.level === 'menu') {
-      fetchAndRenderCategories(account)
-      return
-    }
-
-    if (!isDigit(value)) {
-      return WhatsappDispatcher.sendText(account, `Error!!\n\nYou can only use numbers`)
-    }
-
-    const results = await BrowseCategoryModel.findOne({ account })
-    const category = results?.categories.at(parseInt(value) - 1)
-
-    if (!category) {
-      return WhatsappDispatcher.sendText(
-        account,
-        `Error!\n\nOut of range, you can only choose from 1-${results?.categories.length}`
-      )
-    }
-
-    const url = `${api.products}/?view=CATEGORY&value=${category.category_id}`
-    fetchAndRenderProducts(account, '', url)
-  } catch (error) {
-    console.log(error)
-  }
-}
-
 async function fetchAndRenderProducts(
   account: string,
   query: string,
@@ -168,19 +119,19 @@ async function fetchAndRenderProducts(
     const defaultUrl = `${api.products}/?view=SEARCH&value=${query}`
     const response = await http.get<IHttpGetResponse<IProduct>>(url || defaultUrl)
 
-    const results = response.data.results
+    const results = response.data.products
 
-    if (!response.data.count) {
+    if (!response.data.total) {
       sendSMS(account, `Not found!\n\nWe could not find results for ${query}`)
       return
     }
 
     cacheProducts(account, results)
 
-    const menu = createWhatsappTextTemplate(response.data.results, {
+    const menu = createWhatsappTextTemplate(response.data.products, {
       next: response.data.next,
       previous: response.data.previous,
-      count: response.data.count,
+      count: response.data.total,
     })
 
     await PaginationService.create({
@@ -188,17 +139,17 @@ async function fetchAndRenderProducts(
       component: 'search_results',
       next: response.data.next,
       previous: response.data.previous,
-      count: response.data.count,
-      perPage: response.data.per_page,
-      pageNumber: response.data.page_number,
+      count: response.data.total,
+      perPage: response.data.limit,
+      pageNumber: response.data.skip,
     })
 
     await HierarchyModel.updateOne({ account }, { $set: { level: 'search' } })
 
     const pagination = WhatsAppTemplate.paginationTemplate({
-      header: `Products found (${response.data.results.length}) - page ${
-        response.data.page_number
-      }/${Math.ceil(response.data.count / 10)}`,
+      header: `Products found (${response.data.products.length}) - page ${
+        response.data.skip
+      }/${Math.ceil(response.data.total / 10)}`,
       body: menu,
       previous: response.data.previous,
       next: response.data.next,
@@ -208,43 +159,6 @@ async function fetchAndRenderProducts(
   } catch (error) {
     console.log(error)
   }
-}
-
-async function fetchAndRenderCategories(account: string, url?: string | null) {
-  await BrowseCategoryModel.deleteOne({ account })
-  const response = await http.get<IHttpGetResponse<ICategory>>(url || api.categories)
-  await BrowseCategoryModel.create({
-    account,
-    categories: response.data.results,
-  })
-  await PaginationService.create({
-    component: 'categories',
-    account,
-    perPage: response.data.per_page,
-    pageNumber: response.data.page_number,
-    count: response.data.count,
-    next: response.data.next,
-    previous: response.data.previous,
-  })
-  await HierarchyModel.updateOne({ account }, { $set: { level: 'browse_categories' } })
-
-  const menu = categoryMenu(response.data.results, {
-    next: response.data.next,
-    previous: response.data.previous,
-    count: response.data.count,
-  })
-
-  WhatsappDispatcher.send(
-    account,
-    WhatsAppTemplate.paginationTemplate({
-      header: `Categories - page ${response.data.page_number}/${Math.ceil(
-        response.data.count / 10
-      )}`,
-      body: menu,
-      previous: response.data.previous,
-      next: response.data.next,
-    })
-  )
 }
 
 async function trackOrder(account: string, value: string) {
@@ -264,9 +178,9 @@ async function trackOrder(account: string, value: string) {
       return
     }
 
-    const response = await http.get(api.orders(account))
+    // const response = await http.get(api.orders(account))
 
-    console.log(response.data.data)
+    // console.log(response.data.data)
     // await HierarchyModel.updateOne({account}, {$set: {level: 'menu'}})
     WhatsappDispatcher.sendText(
       account,
@@ -282,16 +196,6 @@ async function trackOrder(account: string, value: string) {
 async function paginateForward(account: string, value: string) {
   try {
     const hierarchy = await HierarchyModel.findOne({ account })
-
-    if (hierarchy?.level === 'browse_categories') {
-      const pagination = await PaginationService.find(account, 'categories')
-
-      if (!pagination) {
-        return
-      }
-
-      fetchAndRenderCategories(account, pagination.next)
-    }
 
     if (hierarchy?.level === 'search') {
       const pagination = await PaginationService.find(account, 'search_results')
@@ -311,16 +215,6 @@ async function paginateBackwards(account: string, value: string) {
   try {
     const hierarchy = await HierarchyModel.findOne({ account })
 
-    if (hierarchy?.level === 'browse_categories') {
-      const pagination = await PaginationService.find(account, 'categories')
-
-      if (!pagination) {
-        return
-      }
-
-      fetchAndRenderCategories(account, pagination.previous)
-    }
-
     if (hierarchy?.level === 'search') {
       const pagination = await PaginationService.find(account, 'search_results')
 
@@ -337,7 +231,6 @@ async function paginateBackwards(account: string, value: string) {
 
 const ProductService = {
   search,
-  browseCategories,
   trackOrder,
   paginateForward,
   paginateBackwards,
