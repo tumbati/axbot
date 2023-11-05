@@ -1,5 +1,3 @@
-export * from './cart.interface'
-export * from './category.interface'
 export * from './dialog.interface'
 export * from './feedback.interface'
 export * from './hierarchy.interface'

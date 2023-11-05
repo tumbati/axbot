@@ -1,4 +1,4 @@
-import { HierarchyStructure, ICart, ICategory, PaginationOptions } from 'src/interfaces'
+import { HierarchyStructure, PaginationOptions } from 'src/interfaces'
 import { IProduct } from 'src/interfaces/product.interface'
 
 export function randomChars(max = 6) {
@@ -57,19 +57,6 @@ export function buildMenu(headerMessage: string, menu: HierarchyStructure[]): st
   return message
 }
 
-export function categoryMenu(categories: ICategory[], pagination: PaginationOptions): string {
-  console.log(pagination)
-  let menu = 'To select the category, enter its corresponding number.\n\n'
-
-  for (let i = 0; i < categories.length; i++) {
-    menu += `${numberToEmoji(i + 1)} ${categories[i].category_name}\n`
-  }
-
-  const notice = pagination.count > 10 ? `\nTo change between pages click button below.` : ''
-
-  return menu+notice
-}
-
 export function isDigit(value: string): boolean {
   return /^[0-9]*$/.test(value)
 }
@@ -104,14 +91,14 @@ export function createWhatsappTextTemplate(products: IProduct[], pagination: Pag
   for (let i = 0; i < products.length; i++) {
     const product = products[i]
     if (i === 0) {
-      template += `${numberToEmoji(1)} ${product.name}\nPrice: MWK ${
-        product.unit_price
+      template += `${numberToEmoji(1)} ${product.title}\nPrice: MWK ${
+        product.price
       }`
     }
 
     if (i > 0) {
-      template += `\n\n${numberToEmoji(i + 1)} ${product.name} \nPrice: MWK ${
-        product.unit_price
+      template += `\n\n${numberToEmoji(i + 1)} ${product.title} \nPrice: MWK ${
+        product.price
       }`
     }
   }
@@ -119,18 +106,6 @@ export function createWhatsappTextTemplate(products: IProduct[], pagination: Pag
   const notice = pagination.count > 10 ? `\nTo change between pages click button below.` : ''
 
   return template+notice
-}
-
-export function createCartTextTemplate(cart: ICart, index: number): string {
-  return `\n\n${numberToEmoji(index + 1)} ${cart.product.name} \nPrice: MWK ${
-    cart.product.unit_price
-  }\nQuantity: ${cart.quantity}`
-}
-
-export function getCartTotal(cart: ICart[]): number {
-  return cart
-    .map((item) => item.quantity * parseInt(item.product.unit_price))
-    .reduce((accumulated, current) => accumulated + current, 0)
 }
 
 export function validateName(value: string, field: string) {

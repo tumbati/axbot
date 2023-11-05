@@ -1,8 +1,8 @@
 export interface IHttpGetResponse<T> {
-  per_page: number
-  count: number
-  page_number: number
+  limit: number
+  total: number
+  skip: number
   next: string
   previous: null
-  results: Array<T>
+  products: Array<T>
 }

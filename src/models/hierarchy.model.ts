@@ -1,10 +1,12 @@
+import { PROVIDERS } from 'src/config/constants'
 import database from 'src/config/database'
 
 const HierarchySchema = new database.Schema(
   {
     provider: {
       type: String,
-      default: 'whatsapp'
+      default: 'whatsapp',
+      enum: PROVIDERS
     },
     account: {
       type: String,

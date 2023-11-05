@@ -97,12 +97,7 @@ async function completeRegistration(account: string) {
       password: build.password,
     }
 
-    WhatsappDispatcher.sendText(account, 'Compiling, please wait...')
-    const response = await WhatsappDispatcher.send(
-      account,
-      WhatsAppTemplate.registrationCard(form)
-    )
-    console.log(response?.messages.first)
+    WhatsappDispatcher.sendText(account, JSON.stringify(form))
   } catch (error) {
     console.log(error)
   }
@@ -201,38 +196,35 @@ async function startRegistrationFlow(account: string, value: string) {
       return
     }
 
-    // Redirect user to use web version
-    WhatsappDispatcher.send(account, WhatsAppTemplate.registrationFormTemplate())
-
     /**
      * Manual account registration, this process is not very considering
      * password is displayed in plain text.
      */
 
-    // const session = await SessionModel.findOne<ISession>({ account })
-    // const hierarchy = await HierarchyModel.findOne({ account })
+    const session = await SessionModel.findOne<ISession>({ account })
+    const hierarchy = await HierarchyModel.findOne({ account })
 
-    // if (hierarchy?.level !== 'registration') {
-    //   await SessionModel.deleteOne({ account })
-    //   await HierarchyModel.updateOne({ account }, { $set: { level: 'registration' } })
-    //   const process = await SessionModel.create({
-    //     account,
-    //     provider: 'whatsapp',
-    //     process: 'registration',
-    //     dialog: [registrationQuestions.first?.question],
-    //   })
+    if (hierarchy?.level !== 'registration') {
+      await SessionModel.deleteOne({ account })
+      await HierarchyModel.updateOne({ account }, { $set: { level: 'registration' } })
+      const process = await SessionModel.create({
+        account,
+        provider: 'whatsapp',
+        process: 'registration',
+        dialog: [registrationQuestions.first?.question],
+      })
 
-    //   WhatsappDispatcher.send(account, {
-    //     type: 'text',
-    //     text: { body: process.dialog.first },
-    //   })
+      WhatsappDispatcher.send(account, {
+        type: 'text',
+        text: { body: process.dialog.first },
+      })
 
-    //   return
-    // }
+      return
+    }
 
-    // if (session) {
-    //   manageRegistrationFlow(session, account, value)
-    // }
+    if (session) {
+      manageRegistrationFlow(session, account, value)
+    }
   } catch (error) {
     console.log(error)
   }

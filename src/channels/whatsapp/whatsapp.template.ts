@@ -1,9 +1,8 @@
 import { DispatchPayload, PaginationDispatch } from 'src/interfaces'
 import { RegistrationForm } from 'src/interfaces/account.interface'
-import { CartVerb, ICart } from 'src/interfaces/cart.interface'
 import { IProduct } from 'src/interfaces/product.interface'
 import { IFaq } from 'src/models/faq.model'
-import { createCartTextTemplate, getCartTotal, removeHtmlTags } from 'src/utils/util'
+import { removeHtmlTags } from 'src/utils/util'
 import constants from './whatsapp.constants'
 
 const helpMenu = [
@@ -76,7 +75,7 @@ function productCardTemplate(product: IProduct): DispatchPayload {
             {
               type: 'image',
               image: {
-                link: `${process.env.MEDIA_SOURCE_URL}/${product.images.first?.image}`,
+                link: product.images.first,
               },
             },
           ],
@@ -86,19 +85,19 @@ function productCardTemplate(product: IProduct): DispatchPayload {
           parameters: [
             {
               type: 'text',
-              text: product.cacheId,
+              text: product.id,
             },
             {
               type: 'text',
-              text: product.name,
+              text: product.title,
             },
             {
               type: 'text',
-              text: product.category.category_name,
+              text: product.category,
             },
             {
               type: 'text',
-              text: product.unit_price,
+              text: product.price,
             },
             {
               type: 'text',
@@ -111,57 +110,6 @@ function productCardTemplate(product: IProduct): DispatchPayload {
   }
 }
 
-function cartDetailTemplate(cart: ICart, verb: CartVerb): DispatchPayload {
-  return {
-    type: 'template',
-    template: {
-      name: constants.templates.cart_product,
-      language: { code: 'en_US' },
-      components: [
-        {
-          type: 'header',
-          parameters: [
-            {
-              type: 'image',
-              image: {
-                link: `${process.env.MEDIA_SOURCE_URL}/${cart.product.images.first?.image}`,
-              },
-            },
-          ],
-        },
-        {
-          type: 'body',
-          parameters: [
-            {
-              type: 'text',
-              text: verb,
-            },
-            {
-              type: 'text',
-              text: cart.product.name,
-            },
-            {
-              type: 'text',
-              text: cart.product.name,
-            },
-            {
-              type: 'text',
-              text: cart.quantity,
-            },
-            {
-              type: 'text',
-              text: `MWK ${cart.product.unit_price}`,
-            },
-            {
-              type: 'text',
-              text: `MWK ${parseInt(cart.product.unit_price) * cart.quantity}`,
-            },
-          ],
-        },
-      ],
-    },
-  }
-}
 
 function registrationCard(form: RegistrationForm): DispatchPayload {
   return {
@@ -188,41 +136,6 @@ function registrationCard(form: RegistrationForm): DispatchPayload {
             {
               type: 'text',
               text: form.password,
-            },
-          ],
-        },
-      ],
-    },
-  }
-}
-
-function cartCardTemplate(cart: ICart[]): DispatchPayload {
-  let items = ''
-
-  for (let i = 0; i < cart.length; i++) {
-    items += createCartTextTemplate(cart[i], i)
-  }
-
-  return {
-    type: 'template',
-    template: {
-      name: constants.templates.cart_card,
-      language: { code: 'en_US' },
-      components: [
-        {
-          type: 'body',
-          parameters: [
-            {
-              type: 'text',
-              text: cart.length,
-            },
-            {
-              type: 'text',
-              text: 'custom list',
-            },
-            {
-              type: 'text',
-              text: getCartTotal(cart),
             },
           ],
         },
@@ -303,7 +216,7 @@ function paginationTemplate(payload: PaginationDispatch): DispatchPayload {
         text: payload.body,
       },
       footer: {
-        text: 'kutenga.mw',
+        text: 'From Tumbati',
       },
       action: {
         button: 'Change page',
@@ -371,9 +284,7 @@ function faqTextTemplate(faq: IFaq[]): string {
 
 const WhatsAppTemplate = {
   productCardTemplate,
-  cartDetailTemplate,
   registrationCard,
-  cartCardTemplate,
   checkoutTemplate,
   registrationFormTemplate,
   helpTextTemplate,

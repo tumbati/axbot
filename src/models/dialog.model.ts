@@ -1,3 +1,4 @@
+import { PROVIDERS } from 'src/config/constants'
 import database from 'src/config/database'
 
 const ThreadSchema = new database.Schema(
@@ -26,7 +27,7 @@ const DialogSchema = new database.Schema(
     },
     provider: {
       type: String,
-      enum: ['whatsapp'],
+      enum: PROVIDERS,
       default: 'whatsapp'
     },
     account: {
