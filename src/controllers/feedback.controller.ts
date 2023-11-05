@@ -1,38 +1,42 @@
-import { Request, Response } from 'express'
-import WhatsappDispatcher from 'src/channels/whatsapp/whatsapp.dispatcher'
-import FeedbackModel from 'src/models/feedback.model'
+import { Request, Response } from 'express';
+import WhatsappDispatcher from 'src/channels/whatsapp/whatsapp.dispatcher';
+import FeedbackModel from 'src/models/feedback.model';
 
-function validatePayload(payload: Record<string, string>) {
-  if (typeof payload !== 'object' || Array.isArray(payload)) return false
+function validatePayload(payload: Record<string, string>): boolean {
+  if (typeof payload !== 'object' || Array.isArray(payload)) {
+    return false;
+  }
 
-  const requiredKeys = ['admin', 'text']
+  const requiredKeys = ['admin', 'text'];
   for (const key of requiredKeys) {
     if (
       !(key in payload) ||
       typeof payload[key] !== 'string' ||
       payload[key].trim() === ''
     ) {
-      return false
+      return false;
     }
   }
 
-  return true
+  return true;
 }
 
-async function getFeedback(req: Request, res: Response) {
+async function handleGetFeedback(req: Request, res: Response): Promise<void> {
   try {
-    const feedbacks = await FeedbackModel.find()
-    return res.json(feedbacks)
-  } catch (error) {
-    res.status(401).send(error)
+    const feedbacks = await FeedbackModel.find();
+    res.json(feedbacks);
+  } catch (error: any) {
+    res.status(401).json({ message: error.message });
   }
 }
 
-async function replyToFeedback(req: Request, res: Response) {
+async function handleReplyToFeedback(req: Request, res: Response) {
   try {
-    const { feedbackId } = req.params
+    const { feedbackId } = req.params;
+    const { admin, text } = req.body;
+
     if (!validatePayload(req.body)) {
-      return res.status(401).send('Invalid data')
+      return res.status(401).json({ message: 'Invalid payload' });
     }
 
     const feedback = await FeedbackModel.findOneAndUpdate(
@@ -40,28 +44,29 @@ async function replyToFeedback(req: Request, res: Response) {
       {
         $push: {
           messages: {
-            admin: req.body.admin,
-            text: req.body.text,
+            admin,
+            text,
             sender: 'admin',
           },
         },
       }
-    )
+    );
 
     if (!feedback) {
-      return res.status(401).send('Unable to reply')
+      return res.status(401).json({ message: 'Unable to reply' });
     }
 
-    WhatsappDispatcher.sendText(feedback.account, `From: Kutenga Customer Care\n\n${req.body.text}`)
-    return res.send('Your reply has been sent.')
-  } catch (error) {
-    res.status(401).send(error)
+    await WhatsappDispatcher.sendText(feedback.account, `From: ${process.env.APP_NAME} Customer Care\n\n${text}`);
+
+    res.json({ message: 'Your reply has been sent.' });
+  } catch (error: any) {
+    res.status(401).json({ message: error.message });
   }
 }
 
 const FeedbackController = {
-  getFeedback,
-  replyToFeedback
-}
+  getFeedback: handleGetFeedback,
+  replyToFeedback: handleReplyToFeedback,
+};
 
-export default FeedbackController
+export default FeedbackController;
