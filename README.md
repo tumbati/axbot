@@ -12,10 +12,13 @@
 Before you begin, ensure you have NodeJS, MongoDB, and optional Docker installed.
 
 1. Install nodemon globally:
+
     ```sh
     npm install -g nodemon
     ```
+
 2. Install project dependencies:
+
     ```sh
     npm install
     ```
@@ -23,10 +26,13 @@ Before you begin, ensure you have NodeJS, MongoDB, and optional Docker installed
 3. Open two terminals for development:
 
     Terminal 1: Run the development server using nodemon:
+
     ```sh
     nodemon
     ```
+
     Terminal 2: Start the application:
+
     ```sh
     npm run dev
     ```
@@ -38,11 +44,13 @@ If you prefer to use MongoDB Atlas, make the following changes:
 1. Open `src/config/database.ts`.
 
 2. Update the database connection URL from:
+
     ```ts
     let url = mongodb://${env.MONGO_USER}:${env.MONGO_PASSWORD}@${env.MONGO_HOST}
     ```
 
     to:
+
     ```ts
     let url = mongodb+srv://${env.MONGO_USER}:${env.MONGO_PASSWORD}@${env.MONGO_HOST}
     ```
@@ -64,15 +72,16 @@ To run the application with Docker, ensure you have Docker and Docker Compose in
 3. Open two terminals for development:
 
     Terminal 1: Run the development server with nodemon:
+
     ```sh
     npm run dev
     ```
 
     Terminal 2: Start the Docker container:
+
     ```sh
     docker compose up
     ```
-
 
 ## WhatsApp API Integration
 
