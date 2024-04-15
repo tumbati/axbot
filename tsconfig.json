@@ -8,7 +8,7 @@
     "emitDecoratorMetadata": true,
     "strict": true,
     "target": "es6",
-    "moduleResolution": "node",
+    "moduleResolution": "node16",
     "paths": {
       "src/*": [
         "./src/*"

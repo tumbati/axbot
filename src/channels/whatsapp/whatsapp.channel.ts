@@ -27,6 +27,7 @@ async function verifyWebhooks(request: Request, response: Response) {
 
 async function streamMessages(request: Request, response: Response) {
   const payload = request.body as WhatsAppMessagePayload
+
   const data = parseMessage(payload)
 
   if (!data) {
@@ -64,7 +65,10 @@ function parseMessage(data: WhatsAppMessagePayload): MessageSubstance | null {
       object.message = value.messages.first.button.payload
     }
 
-    if (value.messages.first?.interactive && value.messages.first.type === 'interactive') {
+    if (
+      value.messages.first?.interactive &&
+      value.messages.first.type === 'interactive'
+    ) {
       object.contextId = value.messages.first.context?.id
       object.message = value.messages.first.interactive.list_reply.title
     }

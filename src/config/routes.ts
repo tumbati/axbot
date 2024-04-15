@@ -1,25 +1,16 @@
 import { Router } from 'express'
 import { WhatsAppChannel } from 'src/channels'
-import FaqController from 'src/controllers/faq.controller'
-import FeedbackController from 'src/controllers/feedback.controller'
+import ChatController from 'src/controllers/chat.controller'
 
 const router = Router()
+  // Subscribe and Verify WhatsApp Webhooks
+  .get('/whatsapp/webhook', WhatsAppChannel.verifyWebhooks)
 
-// Subscribe and Verify WhatsApp Webhooks
-router.get('/whatsapp/webhook', WhatsAppChannel.verifyWebhooks)
+  // Stream WhatsApp messages
+  .post('/whatsapp/webhook', WhatsAppChannel.streamMessages)
 
-// Stream WhatsApp messages
-router.post('/whatsapp/webhook', WhatsAppChannel.streamMessages)
-
-// Fetch feedbacks
-router.get('/whatsapp/webhook/feedbacks', FeedbackController.getFeedback)
-router.post('/whatsapp/webhook/feedbacks/:feedbackId/replies', FeedbackController.replyToFeedback)
-
-// FAQ Controller
-router.get('/whatsapp/webhook/faqs', FaqController.getAllFaqs)
-router.post('/whatsapp/webhook/faqs', FaqController.createFaq)
-router.get('/whatsapp/webhook/faqs/:id', FaqController.getFaqById)
-router.put('/whatsapp/webhook/faqs/:id', FaqController.updateFaq)
-router.delete('/whatsapp/webhook/faqs/:id', FaqController.deleteFaq)
+  // Chat Controller
+  .post('/chats', ChatController.handleCreateMessage)
+  .get('/chats', ChatController.handleGetMessages)
 
 export default router

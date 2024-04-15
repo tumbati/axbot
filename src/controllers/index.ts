@@ -1,3 +1,1 @@
-export * from './faq.controller'
-export * from './feedback.controller'
-
+export * from './chat.controller'
