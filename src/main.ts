@@ -9,12 +9,6 @@ import './extensions/string'
  */
 import 'module-alias/register'
 
-import dotenv from 'dotenv'
-
-dotenv.config({
-  path: '.env',
-})
-
 import { createServer } from 'http'
 import app from './app'
 
@@ -27,7 +21,6 @@ process.env.TZ = process.env.TIMEZONE || 'UTC'
  * Initialize application server
  */
 const server = createServer(app)
-
 
 /**
  * Start application http server
