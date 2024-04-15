@@ -13,7 +13,7 @@ RUN apt-get update && apt-get install -y \
   build-essential \
   && rm -rf /var/lib/apt/lists/*
 
-WORKDIR /usr/src/axcore
+WORKDIR /usr/src/axbot
 
 COPY package.json pnpm-lock.yaml ./
 
@@ -21,11 +21,11 @@ RUN pnpm install
 
 COPY . .
 
-COPY bin/entrypoint.sh /usr/axcore/bin/
-RUN chmod +x /usr/src/axcore/bin/entrypoint.sh
+COPY bin/entrypoint.sh /usr/axbot/bin/
+RUN chmod +x /usr/src/axbot/bin/entrypoint.sh
 
 # Kick start the container with the entrypoint script
-ENTRYPOINT ["/usr/src/axcore/bin/entrypoint.sh"]
+ENTRYPOINT ["/usr/src/axbot/bin/entrypoint.sh"]
 
 EXPOSE 3000
 
