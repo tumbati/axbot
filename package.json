@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "start": "node --env-file=.env dist/src/main.js",
+    "start": "node --env-file=.env dist/main.js",
     "build": "npx tsc",
     "dev": "nodemon"
   },
@@ -29,6 +29,6 @@
     "typescript": "^5.1.6"
   },
   "_moduleAliases": {
-    "src": "./dist/src"
+    "src": "./dist"
   }
 }
