@@ -3,6 +3,7 @@ import database from 'mongoose'
 database.set('strictQuery', true)
 
 const mongoEnvVars: string[] = [
+  'MONGO_PROTOCOL',
   'MONGO_HOST',
   'MONGO_PORT',
   'MONGO_USER',
@@ -20,11 +21,13 @@ for (const mongoVar of mongoEnvVars) {
   }
 }
 
-let url = `mongodb://${env.MONGO_USER}:${env.MONGO_PASSWORD}@${env.MONGO_HOST}`
+let url = `${env.MONGO_PROTOCOL}://${env.MONGO_USER}:${env.MONGO_PASSWORD}@${env.MONGO_HOST}`
 
 if (env.NODE_ENV !== 'production') {
   url = `${url}:${env.MONGO_PORT}`
 }
+
+url += '/?retryWrites=true&w=majority&appName=Cluster0'
 
 const mongoConnectionOptions = {
   useNewUrlParser: true,
@@ -34,9 +37,10 @@ const mongoConnectionOptions = {
   authSource: env.MONGO_AUTH_SOURCE,
 }
 
-database.connect(url, mongoConnectionOptions)
-  .then(_ => console.log('Mongo connected.'))
-  .catch(err => {
+database
+  .connect(url, mongoConnectionOptions)
+  .then((_) => console.log('Mongo connected.'))
+  .catch((err) => {
     throw new Error(err)
   })
 
