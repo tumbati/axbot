@@ -2,7 +2,7 @@
 
 # Adjust NODE_VERSION as desired
 ARG NODE_VERSION=20.9.0
-FROM node:${NODE_VERSION}-slim as base
+FROM node:${NODE_VERSION}-slim AS base
 
 # Node.js app lives here
 WORKDIR /app
@@ -12,11 +12,11 @@ ENV NODE_ENV="production"
 
 # Install pnpm
 ARG PNPM_VERSION=8.10.2
-RUN npm install -g pnpm@$PNPM_VERSION
+RUN npm install -g pnpm@$"PNPM_VERSION"
 
 
 # Throw-away build stage to reduce size of final image
-FROM base as build
+FROM base AS build
 
 # Install packages needed to build node modules
 RUN apt-get update -qq && \
