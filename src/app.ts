@@ -1,9 +1,12 @@
 import cookieParser from 'cookie-parser'
+import cors from 'cors'
 import express, { NextFunction, Request, Response } from 'express'
 import logger from 'morgan'
 import routes from 'src/config/routes'
 
 const app = express()
+
+app.use(cors({ origin: '*' }))
 
 /**
  * Set express http requests conversions
